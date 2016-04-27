@@ -1,0 +1,5 @@
+package: github.com/mudler/docker-tools
+import:
+  - package: github.com/codegangsta/cli
+  - package: github.com/fsouza/go-dockerclient
+  - package: github.com/spf13/jwalterweatherman
