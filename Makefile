@@ -2,7 +2,7 @@ NAME ?= docker-companion
 PACKAGE_NAME ?= $(NAME)
 PACKAGE_CONFLICT ?= $(PACKAGE_NAME)-beta
 REVISION := $(shell git rev-parse --short HEAD || echo unknown)
-VERSION := $(shell git describe --tags || cat VERSION || echo dev)
+VERSION := $(shell git describe --tags || cat main.go | grep -o 'VERSION = "[^"]*"' | awk '{ print $3 }' | sed 's:"::g' || echo dev)
 VERSION := $(shell echo $(VERSION) | sed -e 's/^v//g')
 ifneq ($(RELEASE),true)
     VERSION := $(shell echo $(VERSION)-beta)
