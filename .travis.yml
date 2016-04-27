@@ -5,8 +5,8 @@ env:
   - "PATH=/home/travis/gopath/bin:$PATH"
 before_install:
   - make
-script:
-  - go test -v -covermode=count -coverprofile=coverage.out ./...
-  - goveralls -coverprofile=coverage.out -service travis-ci -repotoken $COVERALLS_TOKEN
+#script:
+#  - go test -v -covermode=count -coverprofile=coverage.out ./...
+#  - goveralls -coverprofile=coverage.out -service travis-ci -repotoken $COVERALLS_TOKEN
 after_success:
-  - ghr --username tcnksm-sample --token $GITHUB_TOKEN --replace --prerelease --debug pre-release release/
+  - ghr --username mudler --token $GITHUB_TOKEN --replace --prerelease --debug pre-release release/
