@@ -4,9 +4,6 @@ PACKAGE_CONFLICT ?= $(PACKAGE_NAME)-beta
 REVISION := $(shell git rev-parse --short HEAD || echo unknown)
 VERSION := $(shell git describe --tags || cat main.go | grep -o 'VERSION = "[^"]*"' | awk '{ print $3 }' | sed 's:"::g' || echo dev)
 VERSION := $(shell echo $(VERSION) | sed -e 's/^v//g')
-ifneq ($(RELEASE),true)
-    VERSION := $(shell echo $(VERSION)-beta)
-endif
 ITTERATION := $(shell date +%s)
 BUILD_PLATFORMS ?= -os="linux" -os="darwin"
 
@@ -39,7 +36,7 @@ deps-update:
 
 build:
 	# Building gitlab-ci-multi-runner for $(BUILD_PLATFORMS)
-	gox $(BUILD_PLATFORMS) -output="release/$(NAME)-{{.OS}}-{{.Arch}}"
+	gox $(BUILD_PLATFORMS) -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}"
 
 lint:
 	# Checking project code style...

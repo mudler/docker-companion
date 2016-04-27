@@ -9,4 +9,5 @@ before_install:
 #  - go test -v -covermode=count -coverprofile=coverage.out ./...
 #  - goveralls -coverprofile=coverage.out -service travis-ci -repotoken $COVERALLS_TOKEN
 after_success:
-  - ghr --username mudler -r docker-companion --replace $TRAVIS_TAG release/
+  - ghr --token $GITHUB_TOKEN --username mudler -r docker-companion --replace --prerelease --debug pre-release release/
+  - ghr --token $GITHUB_TOKEN --username mudler -r docker-companion --replace --debug $(git describe --tags) release/
