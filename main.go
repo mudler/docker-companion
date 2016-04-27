@@ -19,7 +19,7 @@ func main() {
 		{
 			Name:    "unpack",
 			Aliases: []string{"un"},
-			Usage:   "unpack a Docker image content as-is",
+			Usage:   "unpack a Docker image content as-is (not implemented yet)",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "source-image",
