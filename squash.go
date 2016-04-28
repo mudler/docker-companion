@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/codegangsta/cli"
@@ -27,12 +26,7 @@ func squashImage(ctx *cli.Context) {
 
 func Squash(client *docker.Client, image string, toimage string) (bool, error) {
 	var err error
-
-	filename, err := ioutil.TempFile(os.TempDir(), "artemide")
-	if err != nil {
-		jww.FATAL.Fatal("Couldn't create the temporary file")
-	}
-	os.Remove(filename.Name())
+	r, w := io.Pipe()
 
 	// Pulling the image
 	jww.INFO.Printf("Pulling the docker image %s\n", image)
@@ -58,26 +52,15 @@ func Squash(client *docker.Client, image string, toimage string) (bool, error) {
 		})
 	}(container)
 
-	target := fmt.Sprintf("%s.tar", filename.Name())
-	jww.DEBUG.Printf("Writing to target %s\n", target)
-	writer, err := os.Create(target)
-	if err != nil {
-		return false, err
-	}
-
-	err = client.ExportContainer(docker.ExportContainerOptions{ID: container.ID, OutputStream: writer})
+	err = client.ExportContainer(docker.ExportContainerOptions{ID: container.ID, OutputStream: w})
 	if err != nil {
 		jww.FATAL.Fatalln("Couldn't export container, sorry", err)
 		return false, err
 	}
-
-	writer.Sync()
-
-	writer.Close()
 	jww.INFO.Println("Importing to", toimage)
 
 	err = client.ImportImage(docker.ImportImageOptions{Repository: toimage,
-		Source: target,
+		InputStream: r,
 	})
 	if err != nil {
 		jww.FATAL.Fatalln("Couldn't import image, sorry", err)
