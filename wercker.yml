@@ -3,8 +3,7 @@ box: golang
 build:
   steps:
     - setup-go-workspace
-    - termie/glide-build@2014.345.145
-
+    - wercker/glide-install@1.0.0
 deploy:
   steps:
 
