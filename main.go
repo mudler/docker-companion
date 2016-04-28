@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/codegangsta/cli"
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 // VERSION is the app version
@@ -14,12 +15,16 @@ func main() {
 	app.Name = "docker-companion"
 	app.Usage = "a Candy mix of Docker tools"
 	app.Version = VERSION
+	jww.SetStdoutThreshold(jww.LevelInfo)
+	if os.Getenv("DEBUG") == "1" {
+		jww.SetStdoutThreshold(jww.LevelDebug)
+	}
 
 	app.Commands = []cli.Command{
 		{
 			Name:    "unpack",
 			Aliases: []string{"un"},
-			Usage:   "unpack a Docker image content as-is (not implemented yet)",
+			Usage:   "unpack a Docker image content as-is",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "source-image",

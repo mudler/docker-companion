@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"time"
 
 	"github.com/fsouza/go-dockerclient"
 
@@ -54,17 +53,7 @@ func (client *Client) Unpack(image string, dirname string) (bool, error) {
 		jww.INFO.Println("Image", image, "pulled correctly")
 	}
 
-	History, _ := client.docker.ImageHistory(image)
-
-	for i := len(History) - 1; i >= 0; i-- {
-		layer := History[i]
-		layerCreated := time.Unix(layer.Created, 0)
-		jww.DEBUG.Println("Layer ", layer.ID, layerCreated)
-
-	}
-
 	jww.INFO.Println("Creating container")
-	//flatten.Flatten("flat", image)
 
 	container, err := client.docker.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
@@ -104,6 +93,68 @@ func (client *Client) Unpack(image string, dirname string) (bool, error) {
 		return false, err
 	}
 	prepareRootfs(dirname)
+
+	return true, err
+}
+
+func (client *Client) Squash(image string, toimage string) (bool, error) {
+	var err error
+
+	filename, err := ioutil.TempFile(os.TempDir(), "artemide")
+	if err != nil {
+		jww.FATAL.Fatal("Couldn't create the temporary file")
+	}
+	os.Remove(filename.Name())
+
+	// Pulling the image
+	jww.INFO.Printf("Pulling the docker image %s\n", image)
+	if err := client.docker.PullImage(docker.PullImageOptions{Repository: image}, docker.AuthConfiguration{}); err != nil {
+		jww.ERROR.Printf("error pulling %s image: %s\n", image, err)
+		return false, err
+	} else {
+		jww.INFO.Println("Image", image, "pulled correctly")
+	}
+
+	jww.INFO.Println("Creating container")
+
+	container, err := client.docker.CreateContainer(docker.CreateContainerOptions{
+		Config: &docker.Config{
+			Image: image,
+			Cmd:   []string{"true"},
+		},
+	})
+	defer func(*docker.Container) {
+		client.docker.RemoveContainer(docker.RemoveContainerOptions{
+			ID:    container.ID,
+			Force: true,
+		})
+	}(container)
+
+	target := fmt.Sprintf("%s.tar", filename.Name())
+	jww.DEBUG.Printf("Writing to target %s\n", target)
+	writer, err := os.Create(target)
+	if err != nil {
+		return false, err
+	}
+
+	err = client.docker.ExportContainer(docker.ExportContainerOptions{ID: container.ID, OutputStream: writer})
+	if err != nil {
+		jww.FATAL.Fatalln("Couldn't export container, sorry", err)
+		return false, err
+	}
+
+	writer.Sync()
+
+	writer.Close()
+	jww.INFO.Println("Importing to", toimage)
+
+	err = client.docker.ImportImage(docker.ImportImageOptions{Repository: toimage,
+		Source: target,
+	})
+	if err != nil {
+		jww.FATAL.Fatalln("Couldn't import image, sorry", err)
+		return false, err
+	}
 
 	return true, err
 }
