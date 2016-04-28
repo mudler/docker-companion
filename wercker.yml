@@ -26,7 +26,7 @@ deploy:
     # Setup go workspace
     - setup-go-workspace
     # Build source using glide
-    - termie/glide-build@2014.345.145
+    - wercker/glide-install@1.0.0
 
     # Install gox
     - script:
