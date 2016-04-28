@@ -3,38 +3,45 @@ package main
 import (
 	"io"
 	"os"
+	"strings"
 
 	"github.com/codegangsta/cli"
 	"github.com/fsouza/go-dockerclient"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
-func squashImage(ctx *cli.Context) {
+func squashImage(c *cli.Context) {
+
+	var sourceImage string
+	var outputImage string
+	if c.NArg() == 2 {
+		sourceImage = c.Args()[0]
+		outputImage = c.Args()[1]
+	} else {
+		jww.FATAL.Fatalln("This command requires two arguments: squash source-image output-image")
+		os.Exit(1)
+	}
 
 	client, _ := docker.NewClient("unix:///var/run/docker.sock")
+	if c.GlobalBool("pull") == true {
+		PullImage(client, sourceImage)
+	}
+	jww.INFO.Println("Squashing " + sourceImage + " in " + outputImage)
 
-	if ctx.String("source-image") == "" {
-		jww.FATAL.Fatalln("source image not provided, exiting. (see --help) ")
-	}
-	if ctx.String("output-image") == "" {
-		jww.FATAL.Fatalln("output image not provided, exiting. (see --help) ")
-	}
-	Squash(client, ctx.String("source-image"), ctx.String("output-image"))
+	Squash(client, sourceImage, outputImage)
 	os.Exit(0)
 
 }
 
-func Squash(client *docker.Client, image string, toimage string) (bool, error) {
+func Squash(client *docker.Client, image string, toImage string) (bool, error) {
 	var err error
+	var Tag string = "latest"
 	r, w := io.Pipe()
 
-	// Pulling the image
-	jww.INFO.Printf("Pulling the docker image %s\n", image)
-	if err := client.PullImage(docker.PullImageOptions{Repository: image}, docker.AuthConfiguration{}); err != nil {
-		jww.ERROR.Printf("error pulling %s image: %s\n", image, err)
-		return false, err
-	} else {
-		jww.INFO.Println("Image", image, "pulled correctly")
+	Imageparts := strings.Split(toImage, ":")
+	if len(Imageparts) == 2 {
+		Tag = Imageparts[1]
+		toImage = Imageparts[0]
 	}
 
 	jww.INFO.Println("Creating container")
@@ -52,15 +59,24 @@ func Squash(client *docker.Client, image string, toimage string) (bool, error) {
 		})
 	}(container)
 
-	err = client.ExportContainer(docker.ExportContainerOptions{ID: container.ID, OutputStream: w})
-	if err != nil {
-		jww.FATAL.Fatalln("Couldn't export container, sorry", err)
-		return false, err
-	}
-	jww.INFO.Println("Importing to", toimage)
+	// writing without a reader will deadlock so write in a goroutine
+	go func() {
+		// it is important to close the writer or reading from the other end of the
+		// pipe will never finish
+		defer w.Close()
+		err = client.ExportContainer(docker.ExportContainerOptions{ID: container.ID, OutputStream: w})
+		if err != nil {
+			jww.FATAL.Fatalln("Couldn't export container, sorry", err)
+		}
 
-	err = client.ImportImage(docker.ImportImageOptions{Repository: toimage,
+	}()
+
+	jww.INFO.Println("Importing to", toImage)
+
+	err = client.ImportImage(docker.ImportImageOptions{Repository: toImage,
+		Source:      "-",
 		InputStream: r,
+		Tag:         Tag,
 	})
 	if err != nil {
 		jww.FATAL.Fatalln("Couldn't import image, sorry", err)

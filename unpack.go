@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 
+	"github.com/docker/docker/pkg/archive"
 	"github.com/fsouza/go-dockerclient"
 
 	"github.com/codegangsta/cli"
@@ -16,23 +16,29 @@ import (
 const SEPARATOR = string(filepath.Separator)
 const ROOT_FS = "." + SEPARATOR + "rootfs_overlay"
 
-func unpackImage(ctx *cli.Context) {
+func unpackImage(c *cli.Context) {
 
+	var sourceImage string
+	var output string
+	if c.NArg() == 2 {
+		sourceImage = c.Args()[0]
+		output = c.Args()[1]
+	} else {
+		jww.FATAL.Fatalln("This command requires to argument: source-image output-folder(absolute)")
+		os.Exit(1)
+	}
 	client, _ := docker.NewClient("unix:///var/run/docker.sock")
-
-	if ctx.String("source-image") == "" {
-		jww.FATAL.Fatalln("source image not provided, exiting. (see --help) ")
+	if c.GlobalBool("pull") == true {
+		PullImage(client, sourceImage)
 	}
-	if ctx.String("output") == "" {
-		jww.FATAL.Fatalln("source image not provided, exiting. (see --help) ")
-	}
-	jww.INFO.Println("Unpacking " + ctx.String("source-image") + " in " + ctx.String("output"))
-	Unpack(client, ctx.String("source-image"), ctx.String("output"))
+	jww.INFO.Println("Unpacking " + sourceImage + " in " + output)
+	Unpack(client, sourceImage, output)
 	os.Exit(0)
 
 }
 func Unpack(client *docker.Client, image string, dirname string) (bool, error) {
 	var err error
+	r, w := io.Pipe()
 
 	if dirname == "" {
 		dirname = ROOT_FS
@@ -45,15 +51,6 @@ func Unpack(client *docker.Client, image string, dirname string) (bool, error) {
 		jww.FATAL.Fatal("Couldn't create the temporary file")
 	}
 	os.Remove(filename.Name())
-
-	// Pulling the image
-	jww.INFO.Printf("Pulling the docker image %s\n", image)
-	if err := client.PullImage(docker.PullImageOptions{Repository: image}, docker.AuthConfiguration{}); err != nil {
-		jww.ERROR.Printf("error pulling %s image: %s\n", image, err)
-		return false, err
-	} else {
-		jww.INFO.Println("Image", image, "pulled correctly")
-	}
 
 	jww.INFO.Println("Creating container")
 
@@ -70,28 +67,23 @@ func Unpack(client *docker.Client, image string, dirname string) (bool, error) {
 		})
 	}(container)
 
-	target := fmt.Sprintf("%s.tar", filename.Name())
-	jww.DEBUG.Printf("Writing to target %s\n", target)
-	writer, err := os.Create(target)
-	if err != nil {
-		return false, err
-	}
+	// writing without a reader will deadlock so write in a goroutine
+	go func() {
+		// it is important to close the writer or reading from the other end of the
+		// pipe will never finish
+		defer w.Close()
+		err := client.ExportContainer(docker.ExportContainerOptions{ID: container.ID, OutputStream: w})
+		if err != nil {
+			jww.FATAL.Fatalln("Couldn't export container, sorry", err)
+		}
 
-	err = client.ExportContainer(docker.ExportContainerOptions{ID: container.ID, OutputStream: writer})
-	if err != nil {
-		jww.FATAL.Fatalln("Couldn't export container, sorry", err)
-		return false, err
-	}
+	}()
 
-	writer.Sync()
-
-	writer.Close()
 	jww.INFO.Println("Extracting to", dirname)
 
-	untar(target, dirname)
-	err = os.Remove(target)
+	err = Untar(r, dirname, true)
 	if err != nil {
-		jww.ERROR.Println("could not remove temporary file", target)
+		jww.ERROR.Println("could not unpack to", dirname, err)
 		return false, err
 	}
 	prepareRootfs(dirname)
@@ -122,14 +114,9 @@ func prepareRootfs(dirname string) {
 
 }
 
-func untar(src string, dst string) string {
-
-	// this should be used instead https://github.com/yuuki1/droot/blob/d0a19947ca0ab057d1eb8cfd471ce6863675b64f/archive/util.go#L19
-	// temporary code to move on.
-	cmd := "tar -xf " + src + " -C " + dst + " --exclude='dev'"
-	out, err := exec.Command("bash", "-c", cmd).Output()
-	if err != nil {
-		jww.FATAL.Fatalf("Failed to execute command: %s", cmd)
-	}
-	return string(out)
+func Untar(in io.Reader, dest string, sameOwner bool) error {
+	return archive.Untar(in, dest, &archive.TarOptions{
+		NoLchown:        !sameOwner,
+		ExcludePatterns: []string{"dev/"}, // prevent 'operation not permitted'
+	})
 }
