@@ -26,7 +26,10 @@ deploy:
     # Setup go workspace
     - setup-go-workspace
     # Build source using glide
-    - wercker/glide-install@1.0.0
+    - script:
+        name: deps
+        code: |
+          make deps
 
     # Install gox
     - script:
@@ -48,10 +51,10 @@ deploy:
     # Upload all assets
     - github-upload-asset:
         token: $GITHUB_TOKEN
-        file: boson_linux_386
+        file: docker-companion_linux_386
     - github-upload-asset:
         token: $GITHUB_TOKEN
-        file: boson_linux_amd64
+        file: docker-companion_linux_amd64
     - github-upload-asset:
         token: $GITHUB_TOKEN
-        file: boson_linux_arm
+        file: docker-companion_linux_arm
