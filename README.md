@@ -14,7 +14,7 @@ The resulting image will loose metadata, but it is handy to reduce image size:
 
 You can also make it pull before squashing it:
 
-    docker-companion --pull squash my-awesome-image my-awesome-image-squashed
+    docker-companion --pull squash my-awesome-image my-awesome-image-squashed:mytag
 
 ## Unpack an image
 
