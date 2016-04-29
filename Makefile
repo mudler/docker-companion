@@ -16,6 +16,10 @@ help:
 	# make lint - check project code style
 	# make build - build project for all supported OSes
 
+clean:
+	rm -rf vendor/
+	rm -rf release/
+
 deps:
 	# Installing dependencies...
 	go get github.com/Masterminds/glide

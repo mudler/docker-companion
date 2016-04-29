@@ -11,4 +11,4 @@ before_install:
 after_success:
   - git config --global user.name "Deployer" && git config --global user.email foo@bar.com
   - go get github.com/tcnksm/ghr
-  - ghr -u mudler -r docker-companion --replace --debug $(git describe --tags) release/
+  - ghr -u mudler -r docker-companion --replace --debug --prerelease $(git describe --tags) release/
