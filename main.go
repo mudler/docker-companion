@@ -8,7 +8,7 @@ import (
 )
 
 // VERSION is the app version
-const VERSION = "0.2"
+const VERSION = "0.3"
 
 func main() {
 	app := cli.NewApp()
@@ -32,6 +32,12 @@ func main() {
 			Aliases: []string{"un"},
 			Usage:   "unpack the specified Docker image content as-is (run as root!) in a folder - Usage: unpack foo/barimage /foobar/folder",
 			Action:  unpackImage,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "squash",
+					Usage: "squash image before doing operations",
+				},
+			},
 		},
 		{
 			Name:    "squash",

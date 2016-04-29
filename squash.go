@@ -17,6 +17,7 @@ func squashImage(c *cli.Context) {
 	if c.NArg() == 2 {
 		sourceImage = c.Args()[0]
 		outputImage = c.Args()[1]
+		jww.DEBUG.Println("sourceImage " + sourceImage + " outputImage: " + outputImage)
 	} else {
 		jww.FATAL.Fatalln("This command requires two arguments: squash source-image output-image")
 		os.Exit(1)
@@ -29,8 +30,6 @@ func squashImage(c *cli.Context) {
 	jww.INFO.Println("Squashing " + sourceImage + " in " + outputImage)
 
 	Squash(client, sourceImage, outputImage)
-	os.Exit(0)
-
 }
 
 func Squash(client *docker.Client, image string, toImage string) (bool, error) {

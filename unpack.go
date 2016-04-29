@@ -31,10 +31,19 @@ func unpackImage(c *cli.Context) {
 	if c.GlobalBool("pull") == true {
 		PullImage(client, sourceImage)
 	}
+
+	if c.Bool("squash") == true {
+		jww.INFO.Println("Squashing and unpacking " + sourceImage + " in " + output)
+		Squash(client, sourceImage, sourceImage+"-tmpsquashed")
+		sourceImage = sourceImage + "-tmpsquashed"
+		defer func() {
+			jww.INFO.Println("Removing squashed image " + sourceImage)
+			client.RemoveImage(sourceImage)
+		}()
+	}
+
 	jww.INFO.Println("Unpacking " + sourceImage + " in " + output)
 	Unpack(client, sourceImage, output)
-	os.Exit(0)
-
 }
 func Unpack(client *docker.Client, image string, dirname string) (bool, error) {
 	var err error
