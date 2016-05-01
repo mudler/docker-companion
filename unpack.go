@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/docker/docker/pkg/archive"
 	"github.com/fsouza/go-dockerclient"
@@ -34,8 +36,9 @@ func unpackImage(c *cli.Context) {
 
 	if c.Bool("squash") == true {
 		jww.INFO.Println("Squashing and unpacking " + sourceImage + " in " + output)
-		Squash(client, sourceImage, sourceImage+"-tmpsquashed")
-		sourceImage = sourceImage + "-tmpsquashed"
+		time := strconv.Itoa(int(makeTimestamp()))
+		Squash(client, sourceImage, sourceImage+"-tmpsquashed"+time)
+		sourceImage = sourceImage + "-tmpsquashed" + time
 		defer func() {
 			jww.INFO.Println("Removing squashed image " + sourceImage)
 			client.RemoveImage(sourceImage)
@@ -121,6 +124,10 @@ func prepareRootfs(dirname string) {
 	d1 := []byte("nameserver 8.8.8.8\nnameserver 8.8.4.4\n")
 	err = ioutil.WriteFile(dirname+SEPARATOR+"etc"+SEPARATOR+"resolv.conf", d1, 0644)
 
+}
+
+func makeTimestamp() int64 {
+	return time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
 }
 
 func Untar(in io.Reader, dest string, sameOwner bool) error {
