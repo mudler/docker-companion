@@ -2,7 +2,10 @@ package main
 
 import (
 	"io"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/codegangsta/cli"
 	"github.com/fsouza/go-dockerclient"
@@ -72,6 +75,29 @@ func Squash(client *docker.Client, image string, toImage string) error {
 			Force: true,
 		})
 	}(container)
+
+	signal_chan := make(chan os.Signal, 1)
+	signal.Notify(signal_chan,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+
+	go func() {
+		for {
+			s := <-signal_chan
+			switch s {
+
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
+				jww.WARN.Println("SIGTERM/SIGINT/SIGQUIT detected, removing pending containers/image")
+				client.RemoveContainer(docker.RemoveContainerOptions{
+					ID:    container.ID,
+					Force: true,
+				})
+				client.RemoveImage(toImage)
+
+			}
+		}
+	}()
 
 	// writing without a reader will deadlock so write in a goroutine
 	go func() {

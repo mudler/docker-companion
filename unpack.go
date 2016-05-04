@@ -4,8 +4,10 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/docker/docker/pkg/archive"
@@ -78,6 +80,27 @@ func Unpack(client *docker.Client, image string, dirname string) error {
 			Force: true,
 		})
 	}(container)
+
+	signal_chan := make(chan os.Signal, 1)
+	signal.Notify(signal_chan,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+
+	go func() {
+		for {
+			s := <-signal_chan
+			switch s {
+
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
+				jww.WARN.Println("SIGTERM/SIGINT/SIGQUIT detected, removing pending containers")
+				client.RemoveContainer(docker.RemoveContainerOptions{
+					ID:    container.ID,
+					Force: true,
+				})
+			}
+		}
+	}()
 
 	// writing without a reader will deadlock so write in a goroutine
 	go func() {
