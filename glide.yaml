@@ -1,4 +1,4 @@
-package: github.com/mudler/docker-tools
+package: github.com/mudler/docker-companion
 import:
   - package: github.com/codegangsta/cli
   - package: github.com/fsouza/go-dockerclient
