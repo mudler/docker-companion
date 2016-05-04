@@ -21,6 +21,7 @@ clean:
 	rm -rf release/
 
 deps:
+	go env
 	# Installing dependencies...
 	go get github.com/Masterminds/glide
 	go get -u github.com/golang/lint/golint
