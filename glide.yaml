@@ -3,3 +3,5 @@ import:
   - package: github.com/codegangsta/cli
   - package: github.com/fsouza/go-dockerclient
   - package: github.com/spf13/jwalterweatherman
+  - package: github.com/docker/go-units
+  - package: github.com/hashicorp/go-cleanhttp

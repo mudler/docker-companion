@@ -18,7 +18,7 @@ import (
 const SEPARATOR = string(filepath.Separator)
 const ROOT_FS = "." + SEPARATOR + "rootfs_overlay"
 
-func unpackImage(c *cli.Context) {
+func unpackImage(c *cli.Context) error {
 
 	var sourceImage string
 	var output string
@@ -26,8 +26,7 @@ func unpackImage(c *cli.Context) {
 		sourceImage = c.Args()[0]
 		output = c.Args()[1]
 	} else {
-		jww.FATAL.Fatalln("This command requires to argument: source-image output-folder(absolute)")
-		os.Exit(1)
+		return cli.NewExitError("This command requires to argument: source-image output-folder(absolute)", 86)
 	}
 	client, _ := docker.NewClient("unix:///var/run/docker.sock")
 	if c.GlobalBool("pull") == true {
@@ -46,9 +45,10 @@ func unpackImage(c *cli.Context) {
 	}
 
 	jww.INFO.Println("Unpacking " + sourceImage + " in " + output)
-	Unpack(client, sourceImage, output)
+	err := Unpack(client, sourceImage, output)
+	return err
 }
-func Unpack(client *docker.Client, image string, dirname string) (bool, error) {
+func Unpack(client *docker.Client, image string, dirname string) error {
 	var err error
 	r, w := io.Pipe()
 
@@ -60,7 +60,7 @@ func Unpack(client *docker.Client, image string, dirname string) (bool, error) {
 
 	filename, err := ioutil.TempFile(os.TempDir(), "artemide")
 	if err != nil {
-		jww.FATAL.Fatal("Couldn't create the temporary file")
+		return cli.NewExitError("Couldn't create the temporary file", 86)
 	}
 	os.Remove(filename.Name())
 
@@ -95,35 +95,34 @@ func Unpack(client *docker.Client, image string, dirname string) (bool, error) {
 
 	err = Untar(r, dirname, true)
 	if err != nil {
-		jww.ERROR.Println("could not unpack to", dirname, err)
-		return false, err
+		return cli.NewExitError("could not unpack to "+dirname, 86)
 	}
-	prepareRootfs(dirname)
+	err = prepareRootfs(dirname)
 
-	return true, err
+	return err
 }
 
-func prepareRootfs(dirname string) {
+func prepareRootfs(dirname string) error {
 
 	err := os.Remove(dirname + SEPARATOR + ".dockerenv")
 	if err != nil {
-		jww.ERROR.Println("could not remove docker env file")
+		return cli.NewExitError("could not remove docker env file", 86)
 	}
 
 	err = os.Remove(dirname + SEPARATOR + ".dockerinit")
 	if err != nil {
-		jww.ERROR.Println("could not remove docker init file")
+		return cli.NewExitError("could not remove docker init file", 86)
 	}
 
 	err = os.MkdirAll(dirname+SEPARATOR+"dev", 0751)
 	if err != nil {
-		jww.ERROR.Println("could not create dev folder")
+		return cli.NewExitError("could not create dev folder", 86)
 	}
 
 	// Google DNS as default
 	d1 := []byte("nameserver 8.8.8.8\nnameserver 8.8.4.4\n")
 	err = ioutil.WriteFile(dirname+SEPARATOR+"etc"+SEPARATOR+"resolv.conf", d1, 0644)
-
+	return nil
 }
 
 func makeTimestamp() int64 {

@@ -42,8 +42,14 @@ func main() {
 		{
 			Name:    "squash",
 			Aliases: []string{"s"},
-			Usage:   "squash the Docker image (loosing metadata) into another - Usage: squash foo/bar foo/bar-squashed:latest",
+			Usage:   "squash the Docker image (loosing metadata) into another - Usage: squash foo/bar foo/bar-squashed:latest. The second argument is optional",
 			Action:  squashImage,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "remove, rm",
+					Usage: "If you supplied just one image, remove the untagged image",
+				},
+			},
 		},
 	}
 
