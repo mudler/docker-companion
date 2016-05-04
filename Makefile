@@ -7,7 +7,7 @@ VERSION := $(shell echo $(VERSION) | sed -e 's/^v//g')
 ITTERATION := $(shell date +%s)
 BUILD_PLATFORMS ?= -os="linux"
 
-all: deps lint build
+all: deps build
 
 help:
 	# make all => deps test lint build
