@@ -15,6 +15,14 @@ The resulting image will loose metadata, but it is handy to reduce image size:
 You can also make it pull before squashing it:
 
     docker-companion --pull squash my-awesome-image my-awesome-image-squashed:mytag
+    
+Or just squashing an image 
+
+    docker-companion squash my-awesome-image
+    
+to directly remove the intermediary (the source image, which will loose the tag)
+
+    docker-companion squash --remove my-awesome-image
 
 ## Unpack an image
 
