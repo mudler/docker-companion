@@ -20,7 +20,7 @@ You can also make it pull before squashing it:
 
     docker-companion unpack my-awesome-image /my/path
 
-The path must be absolute, and you must run it with root permission to avoid keeping permissions to the files.
+The path must be absolute, and you must run it with root permission to keep file permissions.
 
 You can squash the image right before unpacking it too:
 
