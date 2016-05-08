@@ -1,8 +1,7 @@
 language: go
 go:
-  - 1.5.1
+  - 1.6
 env:
-  - "PATH=/home/travis/gopath/bin:$PATH"
   - "GO15VENDOREXPERIMENT=1"
 before_install:
   - make deps
