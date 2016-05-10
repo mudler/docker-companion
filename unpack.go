@@ -150,6 +150,10 @@ func prepareRootfs(dirname string) error {
 	// Google DNS as default
 	d1 := []byte("nameserver 8.8.8.8\nnameserver 8.8.4.4\n")
 	err = ioutil.WriteFile(dirname+SEPARATOR+"etc"+SEPARATOR+"resolv.conf", d1, 0644)
+	if err != nil {
+		return cli.NewExitError("could not write resolv.conf file", 86)
+	}
+
 	return nil
 }
 
