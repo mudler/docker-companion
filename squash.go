@@ -46,8 +46,8 @@ func squashImage(c *cli.Context) error {
 	}
 	jww.INFO.Println("Squashing " + sourceImage + " in " + outputImage)
 
-	Squash(client, sourceImage, outputImage)
-	return nil
+	err := Squash(client, sourceImage, outputImage)
+	return err
 }
 
 // Squash Squashes a docker image into another one
@@ -118,6 +118,10 @@ func Squash(client *docker.Client, image string, toImage string) error {
 		InputStream: r,
 		Tag:         Tag,
 	})
+
+	if err != nil {
+		return cli.NewExitError("Could not import docker image", 86)
+	}
 
 	return nil
 }
