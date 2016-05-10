@@ -50,9 +50,10 @@ func squashImage(c *cli.Context) error {
 	return nil
 }
 
+// Squash Squashes a docker image into another one
 func Squash(client *docker.Client, image string, toImage string) error {
 	var err error
-	var Tag string = "latest"
+	var Tag = "latest"
 	r, w := io.Pipe()
 
 	Imageparts := strings.Split(toImage, ":")
@@ -76,15 +77,15 @@ func Squash(client *docker.Client, image string, toImage string) error {
 		})
 	}(container)
 
-	signal_chan := make(chan os.Signal, 1)
-	signal.Notify(signal_chan,
+	signalchan := make(chan os.Signal, 1)
+	signal.Notify(signalchan,
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
 
 	go func() {
 		for {
-			s := <-signal_chan
+			s := <-signalchan
 			switch s {
 
 			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:

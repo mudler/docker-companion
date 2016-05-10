@@ -17,8 +17,11 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 )
 
+// SEPARATOR contains system-specific separator
 const SEPARATOR = string(filepath.Separator)
-const ROOT_FS = "." + SEPARATOR + "rootfs_overlay"
+
+// ROOTFS is our temporary rootfs path
+const ROOTFS = "." + SEPARATOR + "rootfs_overlay"
 
 func unpackImage(c *cli.Context) error {
 
@@ -50,12 +53,14 @@ func unpackImage(c *cli.Context) error {
 	err := Unpack(client, sourceImage, output)
 	return err
 }
+
+// Unpack unpacks a docker image into a path
 func Unpack(client *docker.Client, image string, dirname string) error {
 	var err error
 	r, w := io.Pipe()
 
 	if dirname == "" {
-		dirname = ROOT_FS
+		dirname = ROOTFS
 	}
 
 	os.MkdirAll(dirname, 0777)
@@ -81,15 +86,15 @@ func Unpack(client *docker.Client, image string, dirname string) error {
 		})
 	}(container)
 
-	signal_chan := make(chan os.Signal, 1)
-	signal.Notify(signal_chan,
+	signalchan := make(chan os.Signal, 1)
+	signal.Notify(signalchan,
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
 
 	go func() {
 		for {
-			s := <-signal_chan
+			s := <-signalchan
 			switch s {
 
 			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
@@ -152,6 +157,7 @@ func makeTimestamp() int64 {
 	return time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
 }
 
+// Untar just a wrapper around the docker functions
 func Untar(in io.Reader, dest string, sameOwner bool) error {
 	return archive.Untar(in, dest, &archive.TarOptions{
 		NoLchown:        !sameOwner,
