@@ -33,7 +33,12 @@ func unpackImage(c *cli.Context) error {
 	} else {
 		return cli.NewExitError("This command requires to argument: source-image output-folder(absolute)", 86)
 	}
-	client, _ := docker.NewClient("unix:///var/run/docker.sock")
+	var client *docker.Client
+	if os.Getenv("DOCKER_SOCKET") != "" {
+		client, _ = docker.NewClient(os.Getenv("DOCKER_SOCKET"))
+	} else {
+		client, _ = docker.NewClient("unix:///var/run/docker.sock")
+	}
 	if c.GlobalBool("pull") == true {
 		PullImage(client, sourceImage)
 	}

@@ -16,7 +16,12 @@ func squashImage(c *cli.Context) error {
 
 	var sourceImage string
 	var outputImage string
-	client, _ := docker.NewClient("unix:///var/run/docker.sock")
+	var client *docker.Client
+	if os.Getenv("DOCKER_SOCKET") != "" {
+		client, _ = docker.NewClient(os.Getenv("DOCKER_SOCKET"))
+	} else {
+		client, _ = docker.NewClient("unix:///var/run/docker.sock")
+	}
 
 	if c.NArg() == 2 {
 		sourceImage = c.Args()[0]
