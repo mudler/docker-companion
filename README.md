@@ -35,3 +35,13 @@ You can squash the image right before unpacking it too:
     docker-companion --pull unpack --squash my-awesome-image /my/path
 
 It can be handy sometimes to squash the image before unpacking it (very few cases where the latter fails)
+
+## Get Latest release from github for amd64
+
+```bash
+curl -s https://api.github.com/repos/mudler/docker-companion/releases/latest \
+| grep "browser_download_url.*amd64" \
+| cut -d : -f 2,3 \
+| tr -d \" \
+| wget -i - -O docker-companion
+```
