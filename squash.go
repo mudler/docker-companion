@@ -16,11 +16,15 @@ func squashImage(c *cli.Context) error {
 
 	var sourceImage string
 	var outputImage string
+	var err error
 	var client *docker.Client
 	if os.Getenv("DOCKER_SOCKET") != "" {
-		client, _ = docker.NewClient(os.Getenv("DOCKER_SOCKET"))
+		client, err = docker.NewClient(os.Getenv("DOCKER_SOCKET"))
 	} else {
-		client, _ = docker.NewClient("unix:///var/run/docker.sock")
+		client, err = docker.NewClient("unix:///var/run/docker.sock")
+	}
+	if err != nil {
+		return cli.NewExitError("could not connect to the Docker daemon", 87)
 	}
 
 	if c.NArg() == 2 {
@@ -51,7 +55,7 @@ func squashImage(c *cli.Context) error {
 	}
 	jww.INFO.Println("Squashing " + sourceImage + " in " + outputImage)
 
-	err := Squash(client, sourceImage, outputImage)
+	err = Squash(client, sourceImage, outputImage)
 	return err
 }
 

@@ -27,6 +27,7 @@ func unpackImage(c *cli.Context) error {
 
 	var sourceImage string
 	var output string
+	var err error
 	if c.NArg() == 2 {
 		sourceImage = c.Args()[0]
 		output = c.Args()[1]
@@ -35,9 +36,12 @@ func unpackImage(c *cli.Context) error {
 	}
 	var client *docker.Client
 	if os.Getenv("DOCKER_SOCKET") != "" {
-		client, _ = docker.NewClient(os.Getenv("DOCKER_SOCKET"))
+		client, err = docker.NewClient(os.Getenv("DOCKER_SOCKET"))
 	} else {
-		client, _ = docker.NewClient("unix:///var/run/docker.sock")
+		client, err = docker.NewClient("unix:///var/run/docker.sock")
+	}
+	if err != nil {
+		return cli.NewExitError("could not connect to the Docker daemon", 87)
 	}
 	if c.GlobalBool("pull") == true {
 		PullImage(client, sourceImage)
@@ -55,7 +59,7 @@ func unpackImage(c *cli.Context) error {
 	}
 
 	jww.INFO.Println("Unpacking " + sourceImage + " in " + output)
-	err := Unpack(client, sourceImage, output)
+	err = Unpack(client, sourceImage, output)
 	return err
 }
 
