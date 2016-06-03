@@ -25,6 +25,7 @@ func PullImage(client *docker.Client, image string) error {
 
 // NewDocker Creates a new instance of *docker.Client, respecting env settings
 func NewDocker() (*docker.Client, error) {
+	var err error
 	var client *docker.Client
 	if os.Getenv("DOCKER_SOCKET") != "" {
 		client, err = docker.NewClient(os.Getenv("DOCKER_SOCKET"))
