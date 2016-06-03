@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/fsouza/go-dockerclient"
-	"github.com/mudler/docker-companion/vendor/github.com/codegangsta/cli"
+	"github.com/codegangsta/cli"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
