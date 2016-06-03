@@ -27,19 +27,13 @@ func unpackImage(c *cli.Context) error {
 
 	var sourceImage string
 	var output string
-	var err error
 	if c.NArg() == 2 {
 		sourceImage = c.Args()[0]
 		output = c.Args()[1]
 	} else {
 		return cli.NewExitError("This command requires to argument: source-image output-folder(absolute)", 86)
 	}
-	var client *docker.Client
-	if os.Getenv("DOCKER_SOCKET") != "" {
-		client, err = docker.NewClient(os.Getenv("DOCKER_SOCKET"))
-	} else {
-		client, err = docker.NewClient("unix:///var/run/docker.sock")
-	}
+	client, err := NewDocker()
 	if err != nil {
 		return cli.NewExitError("could not connect to the Docker daemon", 87)
 	}

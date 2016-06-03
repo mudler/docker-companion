@@ -16,13 +16,8 @@ func squashImage(c *cli.Context) error {
 
 	var sourceImage string
 	var outputImage string
-	var err error
-	var client *docker.Client
-	if os.Getenv("DOCKER_SOCKET") != "" {
-		client, err = docker.NewClient(os.Getenv("DOCKER_SOCKET"))
-	} else {
-		client, err = docker.NewClient("unix:///var/run/docker.sock")
-	}
+
+	client, err := NewDocker()
 	if err != nil {
 		return cli.NewExitError("could not connect to the Docker daemon", 87)
 	}
