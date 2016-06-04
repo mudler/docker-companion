@@ -51,6 +51,9 @@ func squashImage(c *cli.Context) error {
 	jww.INFO.Println("Squashing " + sourceImage + " in " + outputImage)
 
 	err = Squash(client, sourceImage, outputImage)
+	if err == nil {
+		jww.INFO.Println("Done")
+	}
 	return err
 }
 
@@ -74,6 +77,9 @@ func Squash(client *docker.Client, image string, toImage string) error {
 			Cmd:   []string{"true"},
 		},
 	})
+	if err != nil {
+		jww.FATAL.Fatalln("Couldn't create container, sorry", err)
+	}
 	defer func(*docker.Container) {
 		client.RemoveContainer(docker.RemoveContainerOptions{
 			ID:    container.ID,

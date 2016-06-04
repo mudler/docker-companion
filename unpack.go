@@ -54,6 +54,9 @@ func unpackImage(c *cli.Context) error {
 
 	jww.INFO.Println("Unpacking " + sourceImage + " in " + output)
 	err = Unpack(client, sourceImage, output)
+	if err == nil {
+		jww.INFO.Println("Done")
+	}
 	return err
 }
 
@@ -82,6 +85,9 @@ func Unpack(client *docker.Client, image string, dirname string) error {
 			Cmd:   []string{"true"},
 		},
 	})
+	if err != nil {
+		jww.FATAL.Fatalln("Couldn't export container, sorry", err)
+	}
 	defer func(*docker.Container) {
 		client.RemoveContainer(docker.RemoveContainerOptions{
 			ID:    container.ID,

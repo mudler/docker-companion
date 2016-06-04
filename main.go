@@ -8,7 +8,7 @@ import (
 )
 
 // VERSION is the app version
-const VERSION = "0.3.3"
+const VERSION = "0.3.4"
 
 func main() {
 	app := cli.NewApp()
@@ -52,6 +52,7 @@ func main() {
 			},
 		},
 	}
+	jww.INFO.Println("Docker Companion v" + VERSION)
 
 	app.Run(os.Args)
 }
