@@ -1,6 +1,6 @@
 language: go
 go:
-  - 1.6
+  - 1.9
 env:
   - "GO15VENDOREXPERIMENT=1"
 before_install:
