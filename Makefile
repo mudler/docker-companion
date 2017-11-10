@@ -29,7 +29,6 @@ deps:
 	go get golang.org/x/tools/cmd/cover
 	go get github.com/mattn/goveralls
 	glide install
-	go build
 
 deps-add:
 	glide guess glide.yaml
@@ -39,7 +38,7 @@ deps-update:
 
 build:
 	# Building gitlab-ci-multi-runner for $(BUILD_PLATFORMS)
-	gox $(BUILD_PLATFORMS) -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}"
+	gox $(BUILD_PLATFORMS) -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition"
 
 lint:
 	# Checking project code style...

@@ -6,8 +6,6 @@ env:
 before_install:
   - make deps
 script:
-  - make test
-  - make lint
   - make
 #script:
 #  - go test -v -covermode=count -coverprofile=coverage.out ./...
