@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/docker/docker-ce/components/engine/pkg/archive"
 	"github.com/fsouza/go-dockerclient"
+	"github.com/moby/moby/pkg/archive"
 
 	"github.com/codegangsta/cli"
 	jww "github.com/spf13/jwalterweatherman"
