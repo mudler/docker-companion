@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/docker/docker/pkg/archive"
+	"github.com/docker/docker-ce/components/engine/pkg/archive"
 	"github.com/fsouza/go-dockerclient"
 
 	"github.com/codegangsta/cli"
@@ -53,7 +53,7 @@ func unpackImage(c *cli.Context) error {
 	}
 
 	jww.INFO.Println("Unpacking " + sourceImage + " in " + output)
-	err = Unpack(client, sourceImage, output)
+	err = Unpack(client, sourceImage, output, c.GlobalBool("fatal"))
 	if err == nil {
 		jww.INFO.Println("Done")
 	}
@@ -61,7 +61,7 @@ func unpackImage(c *cli.Context) error {
 }
 
 // Unpack unpacks a docker image into a path
-func Unpack(client *docker.Client, image string, dirname string) error {
+func Unpack(client *docker.Client, image string, dirname string, fatal bool) error {
 	var err error
 	r, w := io.Pipe()
 
@@ -134,33 +134,49 @@ func Unpack(client *docker.Client, image string, dirname string) error {
 	if err != nil {
 		return cli.NewExitError("could not unpack to "+dirname, 86)
 	}
-	err = prepareRootfs(dirname)
+	err = prepareRootfs(dirname, fatal)
 
 	return err
 }
 
-func prepareRootfs(dirname string) error {
+func prepareRootfs(dirname string, fatal bool) error {
 
 	err := os.Remove(dirname + SEPARATOR + ".dockerenv")
 	if err != nil {
-		return cli.NewExitError("could not remove docker env file", 86)
+		if fatal == true {
+			return cli.NewExitError("could not remove docker env file", 86)
+		} else {
+			jww.WARN.Println(".dockerenv not found, extracting anyway")
+		}
 	}
 
 	err = os.Remove(dirname + SEPARATOR + ".dockerinit")
 	if err != nil {
-		return cli.NewExitError("could not remove docker init file", 86)
+		if fatal == true {
+			return cli.NewExitError("could not remove docker init file", 86)
+		} else {
+			jww.WARN.Println(".dockerinit not found, extracting anyway")
+		}
 	}
 
 	err = os.MkdirAll(dirname+SEPARATOR+"dev", 0751)
 	if err != nil {
-		return cli.NewExitError("could not create dev folder", 86)
+		if fatal == true {
+			return cli.NewExitError("could not create dev folder", 86)
+		} else {
+			jww.WARN.Println("could not create dev folder")
+		}
 	}
 
 	// Google DNS as default
 	d1 := []byte("nameserver 8.8.8.8\nnameserver 8.8.4.4\n")
 	err = ioutil.WriteFile(dirname+SEPARATOR+"etc"+SEPARATOR+"resolv.conf", d1, 0644)
 	if err != nil {
-		return cli.NewExitError("could not write resolv.conf file", 86)
+		if fatal == true {
+			return cli.NewExitError("could not write resolv.conf file", 86)
+		} else {
+			jww.WARN.Println("could not create resolv.conf file")
+		}
 	}
 
 	return nil

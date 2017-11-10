@@ -24,6 +24,10 @@ func main() {
 			Name:  "pull",
 			Usage: "pull image before doing operations",
 		},
+		cli.BoolFlag{
+			Name:  "fatal",
+			Usage: "threat errors as fatal",
+		},
 	}
 
 	app.Commands = []cli.Command{
