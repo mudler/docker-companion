@@ -141,21 +141,27 @@ func Unpack(client *docker.Client, image string, dirname string, fatal bool) err
 
 func prepareRootfs(dirname string, fatal bool) error {
 
-	err := os.Remove(dirname + SEPARATOR + ".dockerenv")
-	if err != nil {
-		if fatal == true {
-			return cli.NewExitError("could not remove docker env file", 86)
-		} else {
-			jww.WARN.Println(".dockerenv not found, extracting anyway")
+	_, err := os.Stat(dirname + SEPARATOR + ".dockerenv");
+	if err == nil {
+		err = os.Remove(dirname + SEPARATOR + ".dockerenv")
+		if err != nil {
+			if fatal == true {
+				return cli.NewExitError("could not remove docker env file", 86)
+			} else {
+				jww.WARN.Println("error on remove .dockerenv, extracting anyway")
+			}
 		}
 	}
 
-	err = os.Remove(dirname + SEPARATOR + ".dockerinit")
-	if err != nil {
-		if fatal == true {
-			return cli.NewExitError("could not remove docker init file", 86)
-		} else {
-			jww.WARN.Println(".dockerinit not found, extracting anyway")
+	_, err = os.Stat(dirname + SEPARATOR + ".dockerinit");
+	if err == nil {
+		err = os.Remove(dirname + SEPARATOR + ".dockerinit")
+		if err != nil {
+			if fatal == true {
+				return cli.NewExitError("could not remove docker init file", 86)
+			} else {
+				jww.WARN.Println("error on remove .dockerinit, extracting anyway")
+			}
 		}
 	}
 
