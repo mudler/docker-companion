@@ -36,6 +36,19 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/docker/distribution"
+  packages = [
+    ".",
+    "digestset",
+    "manifest",
+    "manifest/schema1",
+    "manifest/schema2",
+    "reference"
+  ]
+  revision = "5f37adaa4107540c84856b1c4f912c9332aafae9"
+
+[[projects]]
+  branch = "master"
   name = "github.com/docker/docker"
   packages = [
     "api/types",
@@ -83,6 +96,12 @@
   revision = "9ffeaf7d8b64fa0eb64cc27835dc1a5a90328024"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/docker/libtrust"
+  packages = ["."]
+  revision = "aabc10ec26b754e797f9028f4589c5b7bd90dc20"
+
+[[projects]]
   name = "github.com/fsouza/go-dockerclient"
   packages = [
     ".",
@@ -98,6 +117,12 @@
   packages = ["proto"]
   revision = "636bf0302bc95575d69441b25a2603156ffdddf1"
   version = "v1.1.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/heroku/docker-registry-client"
+  packages = ["registry"]
+  revision = "fd2fe803496897db70c236ee244f41487ea92ec2"
 
 [[projects]]
   name = "github.com/opencontainers/go-digest"
@@ -159,6 +184,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "02b359d49ec9a8fa0fb462c172ecc3f5bfc7e3e71690402774582d905955b6e3"
+  inputs-digest = "396df7261e144b0603b1a9f61f2b6235eb21e26494db880bcc764e8df7ab8172"
   solver-name = "gps-cdcl"
   solver-version = 1
