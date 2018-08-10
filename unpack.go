@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/fsouza/go-dockerclient"
-	"github.com/moby/moby/pkg/archive"
+	"github.com/docker/docker/pkg/archive"
+	docker "github.com/fsouza/go-dockerclient"
 
 	"github.com/codegangsta/cli"
 	jww "github.com/spf13/jwalterweatherman"
@@ -141,7 +141,7 @@ func Unpack(client *docker.Client, image string, dirname string, fatal bool) err
 
 func prepareRootfs(dirname string, fatal bool) error {
 
-	_, err := os.Stat(dirname + SEPARATOR + ".dockerenv");
+	_, err := os.Stat(dirname + SEPARATOR + ".dockerenv")
 	if err == nil {
 		err = os.Remove(dirname + SEPARATOR + ".dockerenv")
 		if err != nil {
@@ -153,7 +153,7 @@ func prepareRootfs(dirname string, fatal bool) error {
 		}
 	}
 
-	_, err = os.Stat(dirname + SEPARATOR + ".dockerinit");
+	_, err = os.Stat(dirname + SEPARATOR + ".dockerinit")
 	if err == nil {
 		err = os.Remove(dirname + SEPARATOR + ".dockerinit")
 		if err != nil {
