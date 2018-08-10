@@ -32,6 +32,12 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
+			Name:    "download",
+			Aliases: []string{"dl"},
+			Usage:   "Download and unpacks an image without using docker - Usage: download foo/barimage /foobar/folder",
+			Action:  downloadImage,
+		},
+		{
 			Name:    "unpack",
 			Aliases: []string{"un"},
 			Usage:   "unpack the specified Docker image content as-is (run as root!) in a folder - Usage: unpack foo/barimage /foobar/folder",

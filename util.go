@@ -2,11 +2,21 @@ package main
 
 import (
 	"os"
+	"os/exec"
 
-	"github.com/fsouza/go-dockerclient"
+	docker "github.com/fsouza/go-dockerclient"
+
 	"github.com/codegangsta/cli"
 	jww "github.com/spf13/jwalterweatherman"
 )
+
+func extractTar(src, dest string) ([]byte, error) {
+	jww.INFO.Printf("Extracting: ", TarCmd, "--same-owner", "--xattrs", "--overwrite",
+		"--preserve-permissions", "-xf", src, "-C", dest)
+	cmd := exec.Command(TarCmd, "--same-owner", "--xattrs", "--overwrite",
+		"--preserve-permissions", "-xf", src, "-C", dest)
+	return cmd.CombinedOutput()
+}
 
 // PullImage pull the specified image
 func PullImage(client *docker.Client, image string) error {
