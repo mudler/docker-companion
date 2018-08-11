@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -20,11 +21,9 @@ func downloadImage(c *cli.Context) error {
 
 	var sourceImage string
 	var output string
-	var tag string
-	if c.NArg() == 3 {
+	if c.NArg() == 2 {
 		sourceImage = c.Args()[0]
-		tag = c.Args()[1]
-		output = c.Args()[2]
+		output = c.Args()[1]
 	} else {
 		return cli.NewExitError("This command requires to argument: source-image output-folder(absolute)", 86)
 	}
@@ -33,13 +32,39 @@ func downloadImage(c *cli.Context) error {
 	if len(TempDir) == 0 {
 		TempDir = "layers"
 	}
+	if sourceImage != "" && strings.Contains(sourceImage, ":") {
+		parts := strings.Split(sourceImage, ":")
+		if parts[0] == "" || parts[1] == "" {
+			return cli.NewExitError("Bad usage. Image should be in this format: foo/my-image:latest", 86)
+		}
+	}
 
-	jww.INFO.Println("Unpacking " + sourceImage + " in " + output)
+	tagPart := "latest"
+	repoPart := sourceImage
+	parts := strings.Split(sourceImage, ":")
+	if len(parts) > 1 {
+		repoPart = parts[0]
+		tagPart = parts[1]
+	} else {
+		msg := "Failed parsing image format " + repoPart
+		jww.ERROR.Fatalln(msg)
+		return errors.New(msg)
+	}
+
+	jww.INFO.Println("Unpacking", repoPart, "tag", tagPart, "in", output)
 	os.MkdirAll(output, os.ModePerm)
 	username := "" // anonymous
 	password := "" // anonymous
-	hub, _ := registry.New(registryBase, username, password)
-	manifest, _ := hub.Manifest(sourceImage, tag)
+	hub, err := registry.New(registryBase, username, password)
+	if err != nil {
+		jww.ERROR.Fatalln(err)
+		return err
+	}
+	manifest, err := hub.Manifest(repoPart, tagPart)
+	if err != nil {
+		jww.ERROR.Fatalln(err)
+		return err
+	}
 	layers := manifest.FSLayers
 	layers_sha := make([]string, 0)
 	for _, l := range layers {
@@ -48,7 +73,7 @@ func downloadImage(c *cli.Context) error {
 		s := string(l.BlobSum)
 		i := strings.Index(s, ":")
 		enc := s[i+1:]
-		reader, err := hub.DownloadLayer(sourceImage, l.BlobSum)
+		reader, err := hub.DownloadLayer(repoPart, l.BlobSum)
 		layers_sha = append(layers_sha, enc)
 
 		if reader != nil {
