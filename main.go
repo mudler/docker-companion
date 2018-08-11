@@ -8,7 +8,7 @@ import (
 )
 
 // VERSION is the app version
-const VERSION = "0.4"
+const VERSION = "0.4.1"
 
 func main() {
 	app := cli.NewApp()
