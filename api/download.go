@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -39,10 +38,6 @@ func DownloadImage(sourceImage, output, registryBase string) error {
 	if len(parts) > 1 {
 		repoPart = parts[0]
 		tagPart = parts[1]
-	} else {
-		msg := "Failed parsing image format " + repoPart
-		jww.ERROR.Fatalln(msg)
-		return errors.New(msg)
 	}
 
 	jww.INFO.Println("Unpacking", repoPart, "tag", tagPart, "in", output)
