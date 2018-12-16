@@ -1,4 +1,4 @@
-package main
+package api
 
 // This part is an extract from https://github.com/jwilder/docker-squash/
 
