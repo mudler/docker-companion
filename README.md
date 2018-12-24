@@ -6,6 +6,15 @@ docker-companion is a candy mix of tools for docker written in Golang and direct
 
 Problem arises with current tools to squash/unpack images since mostly of them are scripted. I personally needed a static implementation with no-deps hell that i could use in my CI pipeline easily (and also to get the job done).
 
+## Download and unpack image 
+
+Note: Doesn't require a docker daemon running on the host.
+
+    docker-companion download my-awesome-image /unpacked_rootfs
+    
+It will downloads and reconstruct all the image layers,
+unpacking the content to the directory given as second argument.
+
 ## Squash an image
 
 The resulting image will loose metadata, but it is handy to reduce image size:

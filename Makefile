@@ -29,7 +29,6 @@ deps:
 	go get github.com/mattn/goveralls
 
 build:
-	# Building gitlab-ci-multi-runner for $(BUILD_PLATFORMS)
 	gox $(BUILD_PLATFORMS) -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition"
 
 lint:
