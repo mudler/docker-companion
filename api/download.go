@@ -62,7 +62,7 @@ func DownloadImage(sourceImage, output, registryBase string) error {
 		s := string(l.BlobSum)
 		i := strings.Index(s, ":")
 		enc := s[i+1:]
-		reader, err := hub.DownloadLayer(repoPart, l.BlobSum)
+		reader, err := hub.DownloadBlob(repoPart, l.BlobSum)
 		layers_sha = append(layers_sha, enc)
 
 		if reader != nil {
