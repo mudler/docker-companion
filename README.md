@@ -12,7 +12,7 @@ Note: Doesn't require a docker daemon running on the host.
 
     docker-companion download my-awesome-image /unpacked_rootfs
     
-It will downloads and reconstruct all the image layers,
+Downloads and reconstruct all the image layers,
 unpacking the content to the directory given as second argument.
 
 ## Squash an image
