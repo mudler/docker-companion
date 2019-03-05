@@ -16,13 +16,13 @@ type Export struct {
 	Path    string
 }
 
-func (e *Export) ExtractLayers() error {
+func (e *Export) ExtractLayers(unpackmode string) error {
 
 	jww.INFO.Println("Extracting layers...")
 
 	for _, entry := range e.Entries {
 		jww.INFO.Println("  - ", entry.LayerTarPath)
-		err := entry.ExtractLayerDir()
+		err := entry.ExtractLayerDir(unpackmode)
 		if err != nil {
 			return err
 		}
@@ -30,13 +30,7 @@ func (e *Export) ExtractLayers() error {
 	return nil
 }
 
-func (e *Export) UnPackLayers(order []string, layerDir string) error {
-
-	unpackmode := os.Getenv("UNPACK_MODE")
-	if unpackmode == "" {
-		unpackmode = "umoci"
-	}
-
+func (e *Export) UnPackLayers(order []string, layerDir string, unpackmode string) error {
 	err := os.MkdirAll(layerDir, 0755)
 	if err != nil {
 		return err

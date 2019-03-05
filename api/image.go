@@ -48,14 +48,10 @@ func (e *ExportedImage) RemoveLayerDir() error {
 	return os.RemoveAll(e.LayerDirPath)
 }
 
-func (e *ExportedImage) ExtractLayerDir() error {
+func (e *ExportedImage) ExtractLayerDir(unpackmode string) error {
 	err := os.MkdirAll(e.LayerDirPath, 0755)
 	if err != nil {
 		return err
-	}
-	unpackmode := os.Getenv("UNPACK_MODE")
-	if unpackmode == "" {
-		unpackmode = "umoci"
 	}
 
 	if err := ExtractLayer(&ExtractOpts{

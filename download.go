@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/codegangsta/cli"
 	"github.com/mudler/docker-companion/api"
 )
@@ -15,6 +17,9 @@ func downloadImage(c *cli.Context) error {
 	} else {
 		return cli.NewExitError("This command requires to argument: source-image output-folder(absolute)", 86)
 	}
-
-	return api.DownloadImage(sourceImage, output, &api.DownloadOpts{KeepLayers: c.Bool("keep")})
+	unpackmode := os.Getenv("UNPACK_MODE")
+	if unpackmode == "" {
+		unpackmode = "umoci"
+	}
+	return api.DownloadAndUnpackImage(sourceImage, output, &api.DownloadOpts{KeepLayers: c.Bool("keep"), UnpackMode: unpackmode})
 }

@@ -18,9 +18,10 @@ const defaultRegistryBase = "https://registry-1.docker.io"
 type DownloadOpts struct {
 	RegistryBase string
 	KeepLayers   bool
+	UnpackMode   string
 }
 
-func DownloadImage(sourceImage, output string, opts *DownloadOpts) error {
+func DownloadAndUnpackImage(sourceImage, output string, opts *DownloadOpts) error {
 
 	if opts.RegistryBase == "" {
 		opts.RegistryBase = defaultRegistryBase
@@ -113,7 +114,7 @@ func DownloadImage(sourceImage, output string, opts *DownloadOpts) error {
 
 	jww.INFO.Println("Unpacking...")
 
-	err = export.UnPackLayers(layers_sha, output)
+	err = export.UnPackLayers(layers_sha, output, opts.UnpackMode)
 	if err != nil {
 		jww.INFO.Fatal(err)
 		return err
