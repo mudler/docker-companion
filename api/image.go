@@ -53,10 +53,18 @@ func (e *ExportedImage) ExtractLayerDir() error {
 	if err != nil {
 		return err
 	}
+	unpackmode := os.Getenv("UNPACK_MODE")
+	if unpackmode == "" {
+		unpackmode = "umoci"
+	}
 
-	out, err := extractTar(e.LayerTarPath, e.LayerDirPath)
-	if err != nil {
-		jww.INFO.Println(out)
+	if err := ExtractLayer(&ExtractOpts{
+		Source:       e.LayerTarPath,
+		Destination:  e.LayerDirPath,
+		Compressed:   true,
+		KeepDirlinks: true,
+		Rootless:     false,
+		UnpackMode:   unpackmode}); err != nil {
 		return err
 	}
 	return nil

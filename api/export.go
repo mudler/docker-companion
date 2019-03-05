@@ -32,6 +32,11 @@ func (e *Export) ExtractLayers() error {
 
 func (e *Export) UnPackLayers(order []string, layerDir string) error {
 
+	unpackmode := os.Getenv("UNPACK_MODE")
+	if unpackmode == "" {
+		unpackmode = "umoci"
+	}
+
 	err := os.MkdirAll(layerDir, 0755)
 	if err != nil {
 		return err
@@ -43,9 +48,15 @@ func (e *Export) UnPackLayers(order []string, layerDir string) error {
 			continue
 		}
 
-		out, err := extractTar(entry.LayerTarPath, layerDir)
+		err := ExtractLayer(&ExtractOpts{
+			Source:       entry.LayerTarPath,
+			Destination:  layerDir,
+			Compressed:   true,
+			KeepDirlinks: true,
+			Rootless:     false,
+			UnpackMode:   unpackmode})
 		if err != nil {
-			jww.INFO.Println(out)
+			jww.INFO.Println(err.Error())
 			return err
 		}
 

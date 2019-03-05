@@ -16,5 +16,5 @@ func downloadImage(c *cli.Context) error {
 		return cli.NewExitError("This command requires to argument: source-image output-folder(absolute)", 86)
 	}
 
-	return api.DownloadImage(sourceImage, output, "")
+	return api.DownloadImage(sourceImage, output, &api.DownloadOpts{KeepLayers: c.Bool("keep")})
 }

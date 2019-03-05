@@ -15,16 +15,29 @@ import (
 
 const defaultRegistryBase = "https://registry-1.docker.io"
 
-func DownloadImage(sourceImage, output, registryBase string) error {
+type DownloadOpts struct {
+	RegistryBase string
+	KeepLayers   bool
+}
 
-	if registryBase == "" {
-		registryBase = defaultRegistryBase
+func DownloadImage(sourceImage, output string, opts *DownloadOpts) error {
+
+	if opts.RegistryBase == "" {
+		opts.RegistryBase = defaultRegistryBase
 	}
 
 	var TempDir = os.Getenv("TEMP_LAYER_FOLDER")
-	if len(TempDir) == 0 {
+	if TempDir == "" {
 		TempDir = "layers"
 	}
+	err := os.MkdirAll(TempDir, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	if opts.KeepLayers == false {
+		defer os.RemoveAll(TempDir)
+	}
+
 	if sourceImage != "" && strings.Contains(sourceImage, ":") {
 		parts := strings.Split(sourceImage, ":")
 		if parts[0] == "" || parts[1] == "" {
@@ -44,7 +57,7 @@ func DownloadImage(sourceImage, output, registryBase string) error {
 	os.MkdirAll(output, os.ModePerm)
 	username := "" // anonymous
 	password := "" // anonymous
-	hub, err := registry.New(registryBase, username, password)
+	hub, err := registry.New(opts.RegistryBase, username, password)
 	if err != nil {
 		jww.ERROR.Fatalln(err)
 		return err
@@ -78,7 +91,6 @@ func DownloadImage(sourceImage, output, registryBase string) error {
 			jww.ERROR.Println(err)
 			return err
 		}
-		defer os.RemoveAll(TempDir)
 
 		out, err := os.Create(path.Join(where, "layer.tar"))
 		if err != nil {
@@ -91,13 +103,23 @@ func DownloadImage(sourceImage, output, registryBase string) error {
 		}
 	}
 
+	jww.INFO.Println("Download complete")
+
 	export, err := CreateExport(TempDir)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	export.UnPackLayers(layers_sha, output)
-	jww.INFO.Printf("Done")
+
+	jww.INFO.Println("Unpacking...")
+
+	err = export.UnPackLayers(layers_sha, output)
+	if err != nil {
+		jww.INFO.Fatal(err)
+		return err
+	}
+
+	jww.INFO.Println("Done")
 	return nil
 }
 

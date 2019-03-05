@@ -36,6 +36,12 @@ func main() {
 			Aliases: []string{"dl"},
 			Usage:   "Download and unpacks an image without using docker - Usage: download foo/barimage /foobar/folder",
 			Action:  downloadImage,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "keep",
+					Usage: "Keeps downloaded layers around (useful for debugging)",
+				},
+			},
 		},
 		{
 			Name:    "unpack",

@@ -1,21 +1,52 @@
 package api
 
 import (
+	"bufio"
+	"context"
+	"io"
 	"os"
-	"os/exec"
-
-	docker "github.com/fsouza/go-dockerclient"
 
 	"github.com/codegangsta/cli"
+	archive "github.com/containerd/containerd/archive"
+	dockerarchive "github.com/docker/docker/pkg/archive"
+	docker "github.com/fsouza/go-dockerclient"
+	layer "github.com/openSUSE/umoci/oci/layer"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
-func extractTar(src, dest string) ([]byte, error) {
-	jww.INFO.Printf("Extracting: ", TarCmd, "--same-owner", "--xattrs", "--overwrite",
-		"--preserve-permissions", "-xf", src, "-C", dest)
-	cmd := exec.Command(TarCmd, "--same-owner", "--xattrs", "--overwrite",
-		"--preserve-permissions", "-xf", src, "-C", dest)
-	return cmd.CombinedOutput()
+type ExtractOpts struct {
+	Source, Destination                string
+	Compressed, KeepDirlinks, Rootless bool
+	UnpackMode                         string
+}
+
+func ExtractLayer(opts *ExtractOpts) error {
+	file, err := os.Open(opts.Source)
+	if err != nil {
+		return err
+	}
+	var r io.Reader
+	r = file
+
+	if opts.Compressed {
+		decompressedArchive, err := dockerarchive.DecompressStream(bufio.NewReader(file))
+		if err != nil {
+			return err
+		}
+		defer decompressedArchive.Close()
+		r = decompressedArchive
+	}
+
+	buf := bufio.NewReader(r)
+	switch opts.UnpackMode {
+	case "umoci": // more fixes are in there
+		return layer.UnpackLayer(opts.Destination, buf, &layer.MapOptions{KeepDirlinks: opts.KeepDirlinks, Rootless: opts.Rootless})
+	case "containerd": // more cross-compatible
+		_, err := archive.Apply(context.Background(), opts.Destination, buf)
+		return err
+	default: // moby way
+		return Untar(buf, opts.Destination, !opts.Compressed)
+	}
 }
 
 // PullImage pull the specified image
