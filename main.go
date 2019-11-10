@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 	jww "github.com/spf13/jwalterweatherman"
 )
 

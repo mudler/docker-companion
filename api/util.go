@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 	archive "github.com/containerd/containerd/archive"
 	dockerarchive "github.com/docker/docker/pkg/archive"
 	docker "github.com/fsouza/go-dockerclient"

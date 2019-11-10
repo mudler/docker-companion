@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 	"github.com/mudler/docker-companion/api"
 	jww "github.com/spf13/jwalterweatherman"
 )
