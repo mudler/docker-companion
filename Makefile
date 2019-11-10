@@ -23,10 +23,13 @@ clean:
 deps:
 	go env
 	# Installing dependencies...
-	go get -u github.com/golang/lint/golint
-	go get github.com/mitchellh/gox
-	go get golang.org/x/tools/cmd/cover
-	go get github.com/mattn/goveralls
+	GO111MODULE=off go get github.com/golang/lint/golint
+	GO111MODULE=off go get github.com/mitchellh/gox
+	GO111MODULE=off go get golang.org/x/tools/cmd/cover
+	GO111MODULE=off go get github.com/mattn/goveralls
+
+vendor:
+	go mod vendor
 
 build:
 	gox $(BUILD_PLATFORMS) -output="release/$(NAME)-$(VERSION)-{{.OS}}-{{.Arch}}" -ldflags "-extldflags=-Wl,--allow-multiple-definition"
