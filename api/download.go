@@ -16,9 +16,11 @@ import (
 const defaultRegistryBase = "https://registry-1.docker.io"
 
 type DownloadOpts struct {
-	RegistryBase string
-	KeepLayers   bool
-	UnpackMode   string
+	RegistryBase     string
+	RegistryUsername string
+	RegistryPassword string
+	KeepLayers       bool
+	UnpackMode       string
 }
 
 func DownloadAndUnpackImage(sourceImage, output string, opts *DownloadOpts) error {
@@ -56,8 +58,8 @@ func DownloadAndUnpackImage(sourceImage, output string, opts *DownloadOpts) erro
 
 	jww.INFO.Println("Unpacking", repoPart, "tag", tagPart, "in", output)
 	os.MkdirAll(output, os.ModePerm)
-	username := "" // anonymous
-	password := "" // anonymous
+	username := opts.RegistryUsername
+	password := opts.RegistryPassword
 	hub, err := registry.New(opts.RegistryBase, username, password)
 	if err != nil {
 		jww.ERROR.Fatalln(err)
