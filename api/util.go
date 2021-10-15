@@ -40,7 +40,7 @@ func ExtractLayer(opts *ExtractOpts) error {
 	buf := bufio.NewReader(r)
 	switch opts.UnpackMode {
 	case "umoci": // more fixes are in there
-		return layer.UnpackLayer(opts.Destination, buf, &layer.MapOptions{KeepDirlinks: opts.KeepDirlinks, Rootless: opts.Rootless})
+		return layer.UnpackLayer(opts.Destination, buf, &layer.UnpackOptions{KeepDirlinks: opts.KeepDirlinks, MapOptions: layer.MapOptions{Rootless: opts.Rootless}})
 	case "containerd": // more cross-compatible
 		_, err := archive.Apply(context.Background(), opts.Destination, buf)
 		return err
