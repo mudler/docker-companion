@@ -6,12 +6,12 @@ import (
 	"io"
 	"os"
 
-	"github.com/urfave/cli"
 	archive "github.com/containerd/containerd/archive"
 	dockerarchive "github.com/docker/docker/pkg/archive"
 	docker "github.com/fsouza/go-dockerclient"
-	layer "github.com/openSUSE/umoci/oci/layer"
+	layer "github.com/opencontainers/umoci/oci/layer"
 	jww "github.com/spf13/jwalterweatherman"
+	"github.com/urfave/cli"
 )
 
 type ExtractOpts struct {
