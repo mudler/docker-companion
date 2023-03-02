@@ -21,5 +21,5 @@ func downloadImage(c *cli.Context) error {
 	if unpackmode == "" {
 		unpackmode = "umoci"
 	}
-	return api.DownloadAndUnpackImage(sourceImage, output, &api.DownloadOpts{KeepLayers: c.Bool("keep"), UnpackMode: unpackmode})
+	return api.DownloadAndUnpackImage(sourceImage, output, &api.DownloadOpts{RegistryBase: c.String("registry"), RegistryUsername: c.String("registry-user"), RegistryPassword: c.String("registry-password"), KeepLayers: c.Bool("keep"), UnpackMode: unpackmode})
 }
