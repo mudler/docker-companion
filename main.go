@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/urfave/cli"
 	jww "github.com/spf13/jwalterweatherman"
+	"github.com/urfave/cli"
 )
 
 // VERSION is the app version
@@ -40,6 +40,10 @@ func main() {
 				cli.BoolFlag{
 					Name:  "keep",
 					Usage: "Keeps downloaded layers around (useful for debugging)",
+				},
+				cli.StringFlag{
+					Name:  "arch",
+					Usage: "Specify the arch to download, default to amd64",
 				},
 			},
 		},

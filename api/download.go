@@ -9,11 +9,23 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/heroku/docker-registry-client/registry"
+	"github.com/nokia/docker-registry-client/registry"
 	jww "github.com/spf13/jwalterweatherman"
 )
 
 const defaultRegistryBase = "https://registry-1.docker.io"
+
+const (
+	MediaTypeLayer = "application/vnd.docker.image.rootfs.diff.tar.gzip"
+
+	// MediaTypeForeignLayer is the mediaType used for layers that must be
+	// downloaded from foreign URLs.
+	MediaTypeForeignLayer = "application/vnd.docker.image.rootfs.foreign.diff.tar.gzip"
+
+	// MediaTypeUncompressedLayer is the mediaType used for layers which
+	// are not compressed.
+	MediaTypeUncompressedLayer = "application/vnd.docker.image.rootfs.diff.tar"
+)
 
 type DownloadOpts struct {
 	RegistryBase     string
@@ -23,7 +35,26 @@ type DownloadOpts struct {
 	UnpackMode       string
 }
 
-func DownloadAndUnpackImage(sourceImage, output string, opts *DownloadOpts) error {
+func getTargetImageSha(hub *registry.Registry, repo, tag, arch string) (string, error) {
+	manifestList, err := hub.ManifestList(repo, tag)
+	if err != nil {
+		jww.WARN.Println(err)
+		return "", err
+	}
+	manifests := manifestList.Manifests
+
+	for _, m := range manifests {
+		jww.INFO.Println("Manifest for arch ", m.Platform.Architecture)
+		if arch == m.Platform.Architecture {
+			return string(m.Digest), nil
+		}
+	}
+
+	jww.WARN.Fatalln(fmt.Errorf("Could not found %s digest", arch))
+	return "", fmt.Errorf("Could not found %s digest", arch)
+}
+
+func DownloadAndUnpackImage(sourceImage, output, arch string, opts *DownloadOpts) error {
 
 	if opts.RegistryBase == "" {
 		opts.RegistryBase = defaultRegistryBase
@@ -65,44 +96,98 @@ func DownloadAndUnpackImage(sourceImage, output string, opts *DownloadOpts) erro
 		jww.ERROR.Fatalln(err)
 		return err
 	}
-	manifest, err := hub.Manifest(repoPart, tagPart)
-	if err != nil {
-		jww.ERROR.Fatalln(err)
-		return err
-	}
-	layers := manifest.FSLayers
+
+	tagSha, err := getTargetImageSha(hub, repoPart, tagPart, arch)
 	layers_sha := make([]string, 0)
-	for _, l := range layers {
-		jww.INFO.Println("Layer ", l)
-		// or obtain the digest from an existing manifest's FSLayer list
-		s := string(l.BlobSum)
-		i := strings.Index(s, ":")
-		enc := s[i+1:]
-		reader, err := hub.DownloadBlob(repoPart, l.BlobSum)
-		layers_sha = append(layers_sha, enc)
-
-		if reader != nil {
-			defer reader.Close()
-		}
+	if err != nil {
+		jww.WARN.Println(err)
+		jww.INFO.Println("try manifest v1")
+		// ref from https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list-field-descriptions
+		// if v2 schema failed, failback to schema v1
+		manifest, err := hub.ManifestV1(repoPart, tagPart)
 		if err != nil {
+			jww.ERROR.Fatalln(err)
 			return err
 		}
 
-		where := path.Join(TempDir, enc)
-		err = os.MkdirAll(where, os.ModePerm)
+		layers := manifest.FSLayers
+		for _, l := range layers {
+			jww.INFO.Println("Layer ", l)
+			// or obtain the digest from an existing manifest's FSLayer list
+			s := string(l.BlobSum)
+			i := strings.Index(s, ":")
+			enc := s[i+1:]
+			reader, err := hub.DownloadBlob(repoPart, l.BlobSum)
+			layers_sha = append(layers_sha, enc)
+
+			if reader != nil {
+				defer reader.Close()
+			}
+			if err != nil {
+				return err
+			}
+
+			where := path.Join(TempDir, enc)
+			err = os.MkdirAll(where, os.ModePerm)
+			if err != nil {
+				jww.ERROR.Println(err)
+				return err
+			}
+
+			out, err := os.Create(path.Join(where, "layer.tar"))
+			if err != nil {
+				return err
+			}
+			defer out.Close()
+			if _, err := io.Copy(out, reader); err != nil {
+				fmt.Println(err)
+				return err
+			}
+		}
+	} else {
+		// try with manifestV2 schema
+		manifest, err := hub.Manifest(repoPart, tagSha)
 		if err != nil {
-			jww.ERROR.Println(err)
+			jww.WARN.Fatalln(err)
 			return err
 		}
 
-		out, err := os.Create(path.Join(where, "layer.tar"))
-		if err != nil {
-			return err
-		}
-		defer out.Close()
-		if _, err := io.Copy(out, reader); err != nil {
-			fmt.Println(err)
-			return err
+		layers := manifest.References()
+		for _, l := range layers {
+			jww.INFO.Println("Layer ", l)
+			if l.MediaType != MediaTypeLayer {
+				continue
+			}
+			// or obtain the digest from an existing manifest's FSLayer list
+			s := string(l.Digest)
+			i := strings.Index(s, ":")
+			enc := s[i+1:]
+			reader, err := hub.DownloadBlob(repoPart, l.Digest)
+			layers_sha = append(layers_sha, enc)
+
+			if reader != nil {
+				defer reader.Close()
+			}
+			if err != nil {
+				return err
+			}
+
+			where := path.Join(TempDir, enc)
+			err = os.MkdirAll(where, os.ModePerm)
+			if err != nil {
+				jww.ERROR.Println(err)
+				return err
+			}
+
+			out, err := os.Create(path.Join(where, "layer.tar"))
+			if err != nil {
+				return err
+			}
+			defer out.Close()
+			if _, err := io.Copy(out, reader); err != nil {
+				fmt.Println(err)
+				return err
+			}
 		}
 	}
 

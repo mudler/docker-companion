@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/urfave/cli"
 	"github.com/mudler/docker-companion/api"
+	"github.com/urfave/cli"
 )
 
 func downloadImage(c *cli.Context) error {
@@ -21,5 +21,11 @@ func downloadImage(c *cli.Context) error {
 	if unpackmode == "" {
 		unpackmode = "umoci"
 	}
-	return api.DownloadAndUnpackImage(sourceImage, output, &api.DownloadOpts{KeepLayers: c.Bool("keep"), UnpackMode: unpackmode})
+	var arch string
+	if a := c.String("arch"); a == "" {
+		arch = "amd64"
+	} else {
+		arch = a
+	}
+	return api.DownloadAndUnpackImage(sourceImage, output, arch, &api.DownloadOpts{KeepLayers: c.Bool("keep"), UnpackMode: unpackmode})
 }
