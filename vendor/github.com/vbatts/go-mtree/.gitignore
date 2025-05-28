@@ -3,4 +3,7 @@
 .lint
 .test
 .vet
-gomtree
+.staticcheck
+.gocyclo
+/gomtree
+main

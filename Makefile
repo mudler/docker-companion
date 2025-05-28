@@ -21,12 +21,11 @@ clean:
 	rm -rf release/
 
 deps:
-	go env
 	# Installing dependencies...
-	GO111MODULE=off go get golang.org/x/lint/golint
-	GO111MODULE=off go get github.com/mitchellh/gox
-	GO111MODULE=off go get golang.org/x/tools/cmd/cover
-	GO111MODULE=off go get github.com/mattn/goveralls
+	go install golang.org/x/lint/golint@latest
+	go install github.com/mitchellh/gox@latest
+	go install golang.org/x/tools/cmd/cover@latest
+	go install github.com/mattn/goveralls@latest
 
 vendor:
 	go mod vendor

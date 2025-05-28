@@ -12,6 +12,8 @@ import (
 	"os"
 
 	"github.com/vbatts/go-mtree/pkg/govis"
+
+	//nolint:staticcheck // SA1019 yes ripemd160 is deprecated, but this is for mtree compatibility
 	"golang.org/x/crypto/ripemd160"
 )
 
