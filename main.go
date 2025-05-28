@@ -41,6 +41,18 @@ func main() {
 					Name:  "keep",
 					Usage: "Keeps downloaded layers around (useful for debugging)",
 				},
+				cli.StringFlag{
+					Name:  "registry",
+					Usage: "Set your image registry",
+				},
+				cli.StringFlag{
+					Name:  "registry-user",
+					Usage: "Set registry user",
+				},
+				cli.StringFlag{
+					Name:  "registry-pasword",
+					Usage: "Set registry password",
+				},
 			},
 		},
 		{
